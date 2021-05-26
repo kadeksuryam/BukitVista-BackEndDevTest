@@ -12,6 +12,10 @@ app.get('/', (req, res) => {
     res.send('hello world')
 })
 
+app.get('/movies', (req, res) => {
+    res.status(403).send('<h1>Forbidden</h1>')
+})
+
 app.use(middleware.unknownEndpoint)
 app.use(middleware.errorHandler)
 

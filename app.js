@@ -67,6 +67,21 @@ app.get('/api/movies/favorite', async (req, res) => {
     return res.status(200).json(posters)
 })
 
+
+app.post('/api/movies/favorite', async (req, res) => {
+    const authUser = verifyUser(req)
+    if(!authUser){
+        return res.status(401).json({error : 'token missing or invalid'})
+    }
+
+    const { title } = req.body
+
+    await sequelize.models.favorite_movies.create({ title: title, user_id: authUser.id })
+    
+    return res.status(200).send({status: 'success add the movie'})
+    
+})
+
 //asumsikan title sudah diubah spasinya ke +
 app.get('/api/movies/:title', async (req, res) => {
     const authUser = verifyUser(req)

@@ -197,7 +197,7 @@ Simple REST API server that basically provide Create-Read operation on user favo
 
 **Login**
 ----
-  Returns json data about all user favorite movies.
+  Returns json data about user login status.
 
 * **URL**
 

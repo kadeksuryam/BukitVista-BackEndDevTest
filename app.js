@@ -4,6 +4,7 @@ const cors = require('cors')
 const middleware = require('./utils/middleware')
 const db_reset = require('./sqlite/setup')
 const sequelize = require('./sequelize')
+const jwt = require('jsonwebtoken')
 
 app.use(cors())
 app.use(express.json())
@@ -20,15 +21,34 @@ sequelize.authenticate().then(() => {
 db_reset()
 
 
-app.get('/', (req, res) => {
+const getTokenFrom = request => {
+    const authorization  = request.get('authorization')
+    if(authorization && authorization.toLowerCase().startsWith('bearer ')){
+        return authorization.substring(7)
+    }
+    return null
+}
+
+app.get('/api', (req, res) => {
     res.send('hello world')
 })
 
-app.get('/movies', (req, res) => {
+app.get('/api/movies', (req, res) => {
     res.status(403).send({ error: 'forbidden' })
 })
 
-app.post('/login', (req, res) => {
+app.get('/api/movies/favorite', (req, res) => {
+    const body = req.body
+    const token = getTokenFrom(req)
+    const decodedToken = jwt.verify(token, process.env.SECRET)
+
+    if(!token || !decodedToken.id){
+        return res.status(401).json({error : 'token missing or invalid'})
+    }
+    return res.status(200).json({status : 'success'})
+})
+
+app.post('/api/login', (req, res) => {
     const { name, password } = req.body
     sequelize.models.user.findOne({where: {name: name}}).then(
         async (user) => {
@@ -40,7 +60,15 @@ app.post('/login', (req, res) => {
             }
             else{
                 //buat JWT TOKEN
-                res.status(200).send({status: 'login success'})
+                const userForToken = {
+                    name : user.name,
+                    id : user.user_id
+                }
+                
+                //asumsikan expires dalam 1 jam
+                const token = jwt.sign(userForToken, process.env.SECRET, {expiresIn: 60*60})
+
+                res.status(200).send({token, name: user.name})
             }
         }
     )

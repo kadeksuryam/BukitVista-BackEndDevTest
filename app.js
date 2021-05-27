@@ -32,12 +32,17 @@ const getTokenFrom = request => {
 
 const verifyUser = request => {
     const token = getTokenFrom(request)
-    const decodedToken = jwt.verify(token, process.env.SECRET)
-    
-    if(!token || !decodedToken.id){
-        return false
+    if(!token) return false
+    try{
+        const decodedToken = jwt.verify(token, process.env.SECRET)
+        if(!decodedToken.id){
+            return false
+        }
+        return decodedToken
+    } catch{
+        return false      
     }
-    return decodedToken
+    
 }
 
 app.get('/api', (req, res) => {
